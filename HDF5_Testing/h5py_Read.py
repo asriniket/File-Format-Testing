@@ -49,6 +49,7 @@ def read_group(element_array):
     file_read.close()
 
 
+# Print array at once
 def read_dataset(dataset, element_array):
     t1 = time.time()
     if len(element_array) == 1:

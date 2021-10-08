@@ -62,6 +62,7 @@ def modify_dataset(dataset, element_array, first_half, second_half):
             for i in range(int(element_array[0] / 2), element_array[0]):
                 dataset[i] *= 2
         else:
+            # Alternating elements use step if possible.
             for i in range(0, element_array[0]):
                 if i % 2 == 0:
                     dataset[i] *= 2

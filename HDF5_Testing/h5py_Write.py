@@ -75,6 +75,8 @@ def write_group(element_array, chunk, minimum_value, maximum_value):
     file.close()
 
 
+# Write in one write call
+# Separate function, 1 for generating and one for allocating
 def write_dataset(dataset, elements_array, is_integer, minimum, maximum):
     t1 = time.time()
     random.seed(t1)
