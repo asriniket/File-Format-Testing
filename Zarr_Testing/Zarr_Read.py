@@ -5,11 +5,12 @@ import zarr
 
 
 # Prints out all values in the group and returns the time taken to do so. Relies on the read_dataset function.
-def read_group(element_array):
+def read_group(elements_array):
     file_read = zarr.open("Files_Read/{}_Copy.zarr".format(filename), "r")
-    if len(element_array) == 1:
+    results_file = open("{}_Zarr_results.txt".format(filename), "a")
+    if len(elements_array) == 1:
         group_name = "Vector"
-    elif len(element_array) == 2:
+    elif len(elements_array) == 2:
         group_name = "Matrix"
     else:
         group_name = "Tensor"
@@ -21,49 +22,32 @@ def read_group(element_array):
     dataset_float = file_read.get("Float_{}".format(group_name))
     dataset_float_chunk = file_read.get("Float_{}_Chunk".format(group_name))
     t2 = time.time()
+    results_file.write("\nTime taken to Open all 4 datasets: %f seconds.\n\n" % (t2 - t1))
 
-    # Measure time taken to read data from datasets.
-    t_dataset_int = read_dataset(dataset_int, element_array)
-    t_dataset_int_chunk = read_dataset(dataset_int_chunk, element_array)
-    t_dataset_float = read_dataset(dataset_float, element_array)
-    t_dataset_float_chunk = read_dataset(dataset_float_chunk, element_array)
+    # Measure time taken to read data from datasets and record it in results file.
+    read_dataset(dataset_int, elements_array, results_file)
+    read_dataset(dataset_int_chunk, elements_array, results_file)
+    read_dataset(dataset_float, elements_array, results_file)
+    read_dataset(dataset_float_chunk, elements_array, results_file)
 
-    # Write the time taken in a results.txt file.
-    results_file = open("{}_Zarr_results.txt".format(filename), "a")
-    results_file.write(
-        "Time taken to access {} datasets: %f seconds. \n".format(group_name)
-        % (t2 - t1))
-    results_file.write(
-        "Time taken to read the Integer {} dataset: %f seconds. \n".format(group_name)
-        % t_dataset_int)
-    results_file.write(
-        "Time taken to read the Integer Chunked {} dataset: %f seconds. \n".format(group_name)
-        % t_dataset_int_chunk)
-    results_file.write(
-        "Time taken to read the Float {} dataset: %f seconds. \n".format(group_name)
-        % t_dataset_float)
-    results_file.write(
-        "Time taken to read the Float Chunked {} dataset: %f seconds. \n\n".format(group_name)
-        % t_dataset_float_chunk)
     results_file.close()
 
 
-def read_dataset(dataset, element_array):
+def read_dataset(dataset, elements_array, results_file):
     t1 = time.time()
-    if len(element_array) == 1:
-        for i in range(0, element_array[0]):
-            print(dataset[i])
-    elif len(element_array) == 2:
-        for i in range(0, element_array[0]):
-            for j in range(0, element_array[1]):
-                print(dataset[i, j])
+    if len(elements_array) == 1:
+        print(dataset[:elements_array[0]])
+    elif len(elements_array) == 2:
+        print(dataset[:elements_array[0], :elements_array[1]])
     else:
-        for i in range(0, element_array[0]):
-            for j in range(0, element_array[1]):
-                for k in range(0, element_array[2]):
-                    print(dataset[i, j, k])
+        print(dataset[:elements_array[0], :elements_array[1], :elements_array[2]])
     t2 = time.time()
-    return t2 - t1
+    write_file(dataset, "Read", t2 - t1, results_file)
+
+
+def write_file(dataset, operation, time_elapsed, results_file):
+    dataset_type = dataset.name[1:]
+    results_file.write("Time taken to {} the {} dataset: %f seconds.\n".format(operation, dataset_type) % time_elapsed)
 
 
 if __name__ == "__main__":

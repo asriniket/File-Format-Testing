@@ -1,5 +1,7 @@
+import random
 import time
 
+import numpy as np
 import yaml
 from netCDF4 import Dataset
 
@@ -8,11 +10,13 @@ from netCDF4 import Dataset
 # "first_half" modifies the first half of each dataset,
 # "second_half" modifies the second half of each dataset, and
 # if neither first half nor first half is True, the function modifies alternating elements of each dataset.
-def modify_group(element_array, first_half=False, second_half=False):
+def modify_group(elements_array, minimum, maximum, first_half=False, second_half=False):
     file_read = Dataset("Files_Read/{}_Copy.netc".format(filename), "a")
-    if len(element_array) == 1:
+    results_file = open("{}_NetCDF_results.txt".format(filename), "a")
+
+    if len(elements_array) == 1:
         group_name = "Vector"
-    elif len(element_array) == 2:
+    elif len(elements_array) == 2:
         group_name = "Matrix"
     else:
         group_name = "Tensor"
@@ -24,80 +28,91 @@ def modify_group(element_array, first_half=False, second_half=False):
     dataset_float = file_read.groups[group_name].variables["Float_{}".format(group_name)]
     dataset_float_chunk = file_read.groups[group_name].variables["Float_{}_Chunk".format(group_name)]
     t2 = time.time()
+    results_file.write("\nTime taken to Open all 4 datasets: %f seconds.\n\n" % (t2 - t1))
 
-    # Measure time taken to modify data from datasets.
-    t_dataset_int = modify_dataset(dataset_int, element_array, first_half, second_half)
-    t_dataset_int_chunk = modify_dataset(dataset_int_chunk, element_array, first_half, second_half)
-    t_dataset_float = modify_dataset(dataset_float, element_array, first_half, second_half)
-    t_dataset_float_chunk = modify_dataset(dataset_float_chunk, element_array, first_half, second_half)
+    # Modify datasets and record time taken to do so.
+    modify_dataset(dataset_int, elements_array, True, first_half, second_half, results_file, minimum, maximum)
+    modify_dataset(dataset_int_chunk, elements_array, True, first_half, second_half, results_file, minimum, maximum)
+    modify_dataset(dataset_float, elements_array, False, first_half, second_half, results_file, minimum, maximum)
+    modify_dataset(dataset_float_chunk, elements_array, False, first_half, second_half, results_file, minimum, maximum)
 
-    # Write the time taken in a results.txt file.
-    results_file = open("{}_NetCDF_results.txt".format(filename), "a")
-    results_file.write(
-        "Time taken to access {} datasets: %f seconds. \n".format(group_name)
-        % (t2 - t1))
-    results_file.write(
-        "Time taken to modify the Integer {} dataset: %f seconds. \n".format(group_name)
-        % t_dataset_int)
-    results_file.write(
-        "Time taken to modify the Integer Chunked {} dataset: %f seconds. \n".format(group_name)
-        % t_dataset_int_chunk)
-    results_file.write(
-        "Time taken to modify the Float {} dataset: %f seconds. \n".format(group_name)
-        % t_dataset_float)
-    results_file.write(
-        "Time taken to modify the Float Chunked {} dataset: %f seconds. \n\n".format(group_name)
-        % t_dataset_float_chunk)
     results_file.close()
     file_read.close()
 
 
-def modify_dataset(dataset, element_array, first_half, second_half):
+def modify_dataset(dataset, elements_array, is_integer, first_half, second_half, results_file, minimum, maximum):
     t1 = time.time()
-    if len(element_array) == 1:
+    if len(elements_array) == 1:
+        arr = generate_array(dataset, [elements_array[0] // 2], is_integer, minimum, maximum, results_file)
         if first_half:
-            for i in range(0, int(element_array[0] / 2)):
-                dataset[i] *= 2
+            dataset[:(elements_array[0] // 2)] = arr[:arr.shape[0]]
         elif second_half:
-            for i in range(int(element_array[0] / 2), element_array[0]):
-                dataset[i] *= 2
+            dataset[(elements_array[0] // 2):] = arr[:arr.shape[0]]
         else:
-            for i in range(0, element_array[0]):
-                if i % 2 == 0:
-                    dataset[i] *= 2
-    elif len(element_array) == 2:
+            dataset[:elements_array[0]:2] = arr[:arr.shape[0]]
+    elif len(elements_array) == 2:
+        arr = generate_array(dataset, [elements_array[0] // 2, elements_array[1] // 2], is_integer, minimum, maximum,
+                             results_file)
         if first_half:
-            for i in range(0, int(element_array[0] / 2)):
-                for j in range(0, int(element_array[1] / 2)):
-                    dataset[i, j] *= 2
+            dataset[:(elements_array[0] // 2), :(elements_array[1] // 2)] = arr[:arr.shape[0], :arr.shape[1]]
         elif second_half:
-            for i in range(int(element_array[0] / 2), int(element_array[0])):
-                for j in range(int(element_array[1] / 2), int(element_array[1])):
-                    dataset[i, j] *= 2
+            dataset[(elements_array[0] // 2):, (elements_array[1] // 2):] = arr[:arr.shape[0], :arr.shape[1]]
         else:
-            for i in range(0, element_array[0]):
-                for j in range(0, element_array[1]):
-                    if j % 2 == 0:
-                        dataset[i, j] *= 2
+            dataset[:elements_array[0]:2, :elements_array[1]:2] = arr[:arr.shape[0], :arr.shape[1]]
     else:
+        arr = generate_array(dataset, (elements_array[0] // 2, elements_array[1] // 2, elements_array[2] // 2),
+                             is_integer, minimum, maximum, results_file)
         if first_half:
-            for i in range(0, int(element_array[0] / 2)):
-                for j in range(0, int(element_array[1] / 2)):
-                    for k in range(0, int(element_array[2] / 2)):
-                        dataset[i, j, k] *= 2
+            dataset[:(elements_array[0] // 2), :(elements_array[1] // 2), :(elements_array[2] // 2)] \
+                = arr[:arr.shape[0], :arr.shape[1], :arr.shape[2]]
         elif second_half:
-            for i in range(int(element_array[0] / 2), element_array[0]):
-                for j in range(int(element_array[1] / 2), element_array[1]):
-                    for k in range(int(element_array[2] / 2), element_array[2]):
-                        dataset[i, j, k] *= 2
+            dataset[(elements_array[0] // 2):, (elements_array[1] // 2):, (elements_array[2] // 2):] \
+                = arr[:arr.shape[0], :arr.shape[1], :arr.shape[2]]
         else:
-            for i in range(0, element_array[0]):
-                for j in range(0, element_array[1]):
-                    for k in range(0, element_array[2]):
-                        if k % 2 == 0:
-                            dataset[i, j, k] *= 2
+            dataset[:elements_array[0]:2, :elements_array[1]:2, :elements_array[2]:2] \
+                = arr[:arr.shape[0], :arr.shape[1]]
+        t2 = time.time()
+        write_file(dataset, "Modify", t2 - t1, results_file)
+
+
+def generate_array(dataset, elements_array, is_integer, minimum, maximum, results_file):
+    t1 = time.time()
+    random.seed(t1)
+    if len(elements_array) == 1:
+        arr = np.zeros((elements_array[0],))
+        for i in range(0, elements_array[0]):
+            if is_integer:
+                num = random.randint(minimum, maximum)
+            else:
+                num = random.uniform(minimum, maximum)
+            arr[i] = num
+    elif len(elements_array) == 2:
+        arr = np.zeros((elements_array[0], elements_array[1]))
+        for i in range(0, elements_array[0]):
+            for j in range(0, elements_array[1]):
+                if is_integer:
+                    num = random.randint(minimum, maximum)
+                else:
+                    num = random.uniform(minimum, maximum)
+                arr[i, j] = num
+    else:
+        arr = np.zeros((elements_array[0], elements_array[1], elements_array[2]))
+        for i in range(0, elements_array[0]):
+            for j in range(0, elements_array[1]):
+                for k in range(0, elements_array[2]):
+                    if is_integer:
+                        num = random.randint(minimum, maximum)
+                    else:
+                        num = random.uniform(minimum, maximum)
+                    arr[i, j, k] = num
     t2 = time.time()
-    return t2 - t1
+    write_file(dataset, "Generate the values of", t2 - t1, results_file)
+    return arr
+
+
+def write_file(dataset, operation, time_elapsed, results_file):
+    dataset_type = dataset.name
+    results_file.write("Time taken to {} the {} dataset: %f seconds.\n".format(operation, dataset_type) % time_elapsed)
 
 
 if __name__ == "__main__":
