@@ -188,8 +188,8 @@ def modify_dataset(dataset, elements_array, is_integer, first_half, second_half,
         else:
             dataset[:elements_array[0]:2, :elements_array[1]:2, :elements_array[2]:2] \
                 = arr[:arr.shape[0], :arr.shape[1]]
-        t2 = time.time()
-        write_file(dataset, "Modify", t2 - t1, results_file)
+    t2 = time.time()
+    write_file(dataset, "Modify", t2 - t1, results_file)
 
 
 def append_group(elements_array, append_array, minimum_value, maximum_value):
