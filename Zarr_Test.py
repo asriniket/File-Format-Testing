@@ -2,7 +2,6 @@ import os
 import random
 import shutil
 import time
-from distutils.dir_util import copy_tree
 
 import numpy as np
 import yaml
@@ -76,7 +75,7 @@ def write_dataset(dataset, elements_array, is_integer, minimum, maximum, results
 def copy_file():
     if os.path.exists("Files_Read/{}_Copy.zarr".format(filename)):
         shutil.rmtree("Files_Read/{}_Copy.zarr".format(filename))
-    copy_tree("Files", "Files_Read")
+    shutil.copytree("Files/{}.zarr".format(filename), "Files_Read/{}.zarr".format(filename))
     os.rename("Files_Read/{}.zarr".format(filename), "Files_Read/{}_Copy.zarr".format(filename))
 
 
@@ -298,7 +297,7 @@ def write_file(dataset, operation, time_elapsed, results_file):
     results_file.write("Time taken to {} the {} dataset: %f seconds.\n".format(operation, dataset_type) % time_elapsed)
 
 
-if __name__ == "__main__":
+def begin_test(config_name):
     # Make "Files" folder for storing the files. Make "Files_Read" folder for performing read operations.
     if not os.path.exists("Files"):
         os.makedirs("Files")
@@ -306,35 +305,18 @@ if __name__ == "__main__":
         os.makedirs("Files_Read")
 
     # Configuration file creation
-    check = int(
-        input("Would you like a sample configuration file to be generated? Press 1 for yes and 2 for no.\n"))
-    if check == 1:
-        data = {
-            "FILE_NAME": "File_Name",
-            "NUMBER_ELEMENTS": [0, 0, 0],
-            "CHUNK_SIZE": 0,
-            "MIN_DATA_VALUE": 0,
-            "MAX_DATA_VALUE": 0,
-            "NUMBER_APPEND": [0, 0, 0],
-            "MODIFY_FIRST_HALF": True,
-            "MODIFY_SECOND_HALF": False
-        }
-        with open("sample_config.yaml", "w") as f:
-            yaml.safe_dump(data, f, sort_keys=False)
-
-    config_name = str(
-        input("Enter the name of the configuration file to use (Don't include the file extension).\n"))
-
+    global filename
     with open("{}.yaml".format(config_name), "r") as f:
         config_file = yaml.safe_load(f)
-    filename = config_file.get("FILE_NAME")
-    num_elements = config_file.get("NUMBER_ELEMENTS")
-    chunk_size = config_file.get("CHUNK_SIZE")
-    min_value = config_file.get("MIN_DATA_VALUE")
-    max_value = config_file.get("MAX_DATA_VALUE")
-    first_half_modify = config_file.get("MODIFY_FIRST_HALF")
-    second_half_modify = config_file.get("MODIFY_SECOND_HALF")
-    num_append = config_file.get("NUMBER_APPEND")
+
+        filename = config_file.get("FILE_NAME")
+        num_elements = config_file.get("NUMBER_ELEMENTS")
+        chunk_size = config_file.get("CHUNK_SIZE")
+        min_value = config_file.get("MIN_DATA_VALUE")
+        max_value = config_file.get("MAX_DATA_VALUE")
+        first_half_modify = config_file.get("MODIFY_FIRST_HALF")
+        second_half_modify = config_file.get("MODIFY_SECOND_HALF")
+        num_append = config_file.get("NUMBER_APPEND")
 
     # Begin populating each group (group is top-level in HDF5 hierarchy)
     write_group(num_elements, chunk_size, min_value, max_value)

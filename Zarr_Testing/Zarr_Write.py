@@ -2,7 +2,6 @@ import os
 import random
 import shutil
 import time
-from distutils.dir_util import copy_tree
 
 import numpy as np
 import yaml
@@ -116,7 +115,7 @@ def generate_array(dataset, elements_array, is_integer, minimum, maximum, result
 def copy_file():
     if os.path.exists("Files_Read/{}_Copy.zarr".format(filename)):
         shutil.rmtree("Files_Read/{}_Copy.zarr".format(filename))
-    copy_tree("Files", "Files_Read")
+    shutil.copytree("Files/{}.zarr".format(filename), "Files_Read/{}.zarr".format(filename))
     os.rename("Files_Read/{}.zarr".format(filename), "Files_Read/{}_Copy.zarr".format(filename))
 
 
