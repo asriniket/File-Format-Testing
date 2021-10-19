@@ -31,6 +31,7 @@ def plot_data(file_format, data):
     plt.bar(x + .25, append, 0.25, label="Append")
     plt.title("{} Read/Write/Append Times".format(file_format))
     plt.legend()
+    plt.tight_layout()
 
     plt.figure(2)
     plt.xticks(x, x_axis_labels)
@@ -39,6 +40,7 @@ def plot_data(file_format, data):
     plt.ylabel("Time (seconds)")
     plt.bar(x, overwrite, .5)
     plt.title("{} Overwrite Times".format(file_format))
+    plt.tight_layout()
 
     if not file_format == "NetCDF":
         plt.figure(3)
@@ -48,6 +50,7 @@ def plot_data(file_format, data):
         plt.ylabel("Time (seconds)")
         plt.bar(x, resize, 0.5)
         plt.title("{} Resize Times".format(file_format))
+        plt.tight_layout()
 
     plt.figure(4)
     plt.xticks(c, creation_access_labels)
@@ -56,6 +59,7 @@ def plot_data(file_format, data):
     plt.ylabel("Time (seconds)")
     plt.bar(c, creation_access, .5)
     plt.title("{} Dataset Creation/Access".format(file_format))
+    plt.tight_layout()
 
     with PdfPages("Plots/{}/{}.pdf".format(filename, file_format)) as pdf:
         pdf.savefig(plt.figure(1))
