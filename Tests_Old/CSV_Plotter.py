@@ -192,4 +192,3 @@ if __name__ == "__main__":
     plot_data("{}".format(output_name), "Resize", dataset.Resize)
     plot_data("{}".format(output_name), "Append", dataset.Append)
     plot_data("{}".format(output_name), "Creation_Access", dataset)
-

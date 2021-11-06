@@ -28,7 +28,7 @@ if __name__ == "__main__":
     #         "MODIFY_FIRST_HALF": True,
     #         "MODIFY_SECOND_HALF": False
     #     }
-    #     with open("sample_config.yaml", "w") as f:
+    #     with open("1.yaml", "w") as f:
     #         yaml.safe_dump(data, f, sort_keys=False)
     run("1", 5)
     run("2", 5)

@@ -3,9 +3,9 @@ import random
 import shutil
 import time
 
-import h5py
 import numpy as np
 import yaml
+from netCDF4 import Dataset
 
 
 # Populates the group with datasets containing randomly generated values.
@@ -13,45 +13,47 @@ import yaml
 # and 2 float datasets (chunked and non chunked).
 # Relies on the write_dataset function to actually populate each dataset with values and measure the elapsed time taken.
 # Stores the time taken into a "results.txt" file.
-def write_group(element_array, chunk, minimum_value, maximum_value):
+def write_group(element_array, append_array, chunk, minimum_value, maximum_value):
     # Create file to use for testing.
-    file = h5py.File("Files/{}.hdf5".format(filename), "w")
-    results_file = open("{}_HDF5_results.txt".format(filename), "w")
+    file = Dataset("Files/{}.netc".format(filename), "w", format="NETCDF4")
+    results_file = open("{}_NetCDF_results.txt".format(filename), "w")
     results_file.close()
-    results_file = open("{}_HDF5_results.txt".format(filename), "a")
+    results_file = open("{}_NetCDF_results.txt".format(filename), "a")
     # Creating a group based on the number of dimensions specified.
     if len(element_array) == 1:
-        group = file.create_group("Vector")
+        group = file.createGroup("Vector")
         group_name = "Vector"
-        dimensions = (element_array[0],)
-        max_shape = (None,)
+        group.createDimension("x", element_array[0] + append_array[0])
+        dimensions = ("x",)
         chunks = (chunk,)
     elif len(element_array) == 2:
-        group = file.create_group("Matrix")
+        group = file.createGroup("Matrix")
         group_name = "Matrix"
-        dimensions = (element_array[0], element_array[1])
-        max_shape = (None, None)
+        group.createDimension("x", element_array[0] + append_array[0])
+        group.createDimension("y", element_array[1] + append_array[1])
+        dimensions = ("x", "y",)
         chunks = (chunk, chunk)
     else:
-        group = file.create_group("Tensor")
+        group = file.createGroup("Tensor")
         group_name = "Tensor"
-        dimensions = (element_array[0], element_array[1], element_array[2])
-        max_shape = (None, None, None)
+        group.createDimension("x", element_array[0] + append_array[0])
+        group.createDimension("y", element_array[1] + append_array[1])
+        group.createDimension("z", element_array[2] + append_array[2])
+        dimensions = ("x", "y", "z",)
         chunks = (chunk, chunk, chunk)
 
     # Creates 4 datasets in the group and measures the time taken.
     t1 = time.time()
-    dataset_int = group.create_dataset(
-        "Integer_{}".format(group_name), shape=dimensions, maxshape=max_shape, dtype="i")
-    dataset_int_chunk = group.create_dataset(
-        "Integer_{}_Chunk".format(group_name), shape=dimensions, maxshape=max_shape, dtype="i", chunks=chunks)
-    dataset_float = group.create_dataset(
-        "Float_{}".format(group_name), shape=dimensions, maxshape=max_shape, dtype="f")
-    dataset_float_chunk = group.create_dataset(
-        "Float_{}_Chunk".format(group_name), shape=dimensions, maxshape=max_shape, dtype="f", chunks=chunks)
+    dataset_int = group.createVariable(
+        "Integer_{}".format(group_name), "i", dimensions)
+    dataset_int_chunk = group.createVariable(
+        "Integer_{}_Chunk".format(group_name), "i", dimensions, chunksizes=chunks)
+    dataset_float = group.createVariable(
+        "Float_{}".format(group_name), "f", dimensions)
+    dataset_float_chunk = group.createVariable(
+        "Float_{}_Chunk".format(group_name), "f", dimensions, chunksizes=chunks)
     t2 = time.time()
     results_file.write("Time taken to Create all datasets: %f seconds.\n\n" % (t2 - t1))
-
     # Measure time taken to write data to datasets and write it to the results file.
     write_dataset(dataset_int, element_array, True, minimum_value, maximum_value, results_file)
     write_dataset(dataset_int_chunk, element_array, True, minimum_value, maximum_value, results_file)
@@ -118,15 +120,14 @@ def generate_array(dataset, elements_array, is_integer, minimum, maximum, result
 
 
 def copy_file():
-    if os.path.exists("Files_Read/{}_Copy.hdf5".format(filename)):
-        os.remove("Files_Read/{}_Copy.hdf5".format(filename))
-    shutil.copy2("Files/{}.hdf5".format(filename), "Files_Read")
-    os.rename("Files_Read/{}.hdf5".format(filename), "Files_Read/{}_Copy.hdf5".format(filename))
+    if os.path.exists("Files_Read/{}_Copy.netc".format(filename)):
+        os.remove("Files_Read/{}_Copy.netc".format(filename))
+    shutil.copy2("Files/{}.netc".format(filename), "Files_Read")
+    os.rename("Files_Read/{}.netc".format(filename), "Files_Read/{}_Copy.netc".format(filename))
 
 
 def write_file(dataset, operation, time_elapsed, results_file):
-    dataset_name = dataset.name
-    dataset_type = dataset_name[dataset_name.index("/", 1) + 1:]
+    dataset_type = dataset.name
     results_file.write("Time taken to {} the {} dataset: %f seconds.\n".format(operation, dataset_type) % time_elapsed)
 
 
@@ -150,7 +151,7 @@ if __name__ == "__main__":
             "MODIFY_FIRST_HALF": True,
             "MODIFY_SECOND_HALF": False
         }
-        with open("sample_config.yaml", "w") as f:
+        with open("1.yaml", "w") as f:
             yaml.safe_dump(data, f, sort_keys=False)
 
     config_name = str(
@@ -162,9 +163,10 @@ if __name__ == "__main__":
     chunk_size = config_file.get("CHUNK_SIZE")
     min_value = config_file.get("MIN_DATA_VALUE")
     max_value = config_file.get("MAX_DATA_VALUE")
+    num_append = config_file.get("NUMBER_APPEND")
 
     # Begin populating each group (group is top-level in HDF5 hierarchy)
-    write_group(num_elements, chunk_size, min_value, max_value)
+    write_group(num_elements, num_append, chunk_size, min_value, max_value)
 
     # Copy file to new directory to begin remaining operations
     copy_file()

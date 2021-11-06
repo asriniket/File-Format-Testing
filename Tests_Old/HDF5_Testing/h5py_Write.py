@@ -3,9 +3,9 @@ import random
 import shutil
 import time
 
+import h5py
 import numpy as np
 import yaml
-import zarr
 
 
 # Populates the group with datasets containing randomly generated values.
@@ -15,36 +15,40 @@ import zarr
 # Stores the time taken into a "results.txt" file.
 def write_group(element_array, chunk, minimum_value, maximum_value):
     # Create file to use for testing.
-    results_file = open("{}_Zarr_results.txt".format(filename), "w")
+    file = h5py.File("Files/{}.hdf5".format(filename), "w")
+    results_file = open("{}_HDF5_results.txt".format(filename), "w")
     results_file.close()
-    results_file = open("{}_Zarr_results.txt".format(filename), "a")
+    results_file = open("{}_HDF5_results.txt".format(filename), "a")
     # Creating a group based on the number of dimensions specified.
     if len(element_array) == 1:
-        group = zarr.open("Files/{}.zarr".format(filename), "w")
+        group = file.create_group("Vector")
         group_name = "Vector"
         dimensions = (element_array[0],)
+        max_shape = (None,)
         chunks = (chunk,)
     elif len(element_array) == 2:
-        group = zarr.open("Files/{}.zarr".format(filename), "w")
+        group = file.create_group("Matrix")
         group_name = "Matrix"
         dimensions = (element_array[0], element_array[1])
+        max_shape = (None, None)
         chunks = (chunk, chunk)
     else:
-        group = zarr.open("Files/{}.zarr".format(filename), "w")
+        group = file.create_group("Tensor")
         group_name = "Tensor"
         dimensions = (element_array[0], element_array[1], element_array[2])
+        max_shape = (None, None, None)
         chunks = (chunk, chunk, chunk)
 
     # Creates 4 datasets in the group and measures the time taken.
     t1 = time.time()
     dataset_int = group.create_dataset(
-        "Integer_{}".format(group_name), shape=dimensions, dtype="i")
+        "Integer_{}".format(group_name), shape=dimensions, maxshape=max_shape, dtype="i")
     dataset_int_chunk = group.create_dataset(
-        "Integer_{}_Chunk".format(group_name), shape=dimensions, dtype="i", chunks=chunks)
+        "Integer_{}_Chunk".format(group_name), shape=dimensions, maxshape=max_shape, dtype="i", chunks=chunks)
     dataset_float = group.create_dataset(
-        "Float_{}".format(group_name), shape=dimensions, dtype="f")
+        "Float_{}".format(group_name), shape=dimensions, maxshape=max_shape, dtype="f")
     dataset_float_chunk = group.create_dataset(
-        "Float_{}_Chunk".format(group_name), shape=dimensions, dtype="f", chunks=chunks)
+        "Float_{}_Chunk".format(group_name), shape=dimensions, maxshape=max_shape, dtype="f", chunks=chunks)
     t2 = time.time()
     results_file.write("Time taken to Create all datasets: %f seconds.\n\n" % (t2 - t1))
 
@@ -54,6 +58,7 @@ def write_group(element_array, chunk, minimum_value, maximum_value):
     write_dataset(dataset_float, element_array, False, minimum_value, maximum_value, results_file)
     write_dataset(dataset_float_chunk, element_array, False, minimum_value, maximum_value, results_file)
 
+    file.close()
     results_file.close()
 
 
@@ -113,14 +118,15 @@ def generate_array(dataset, elements_array, is_integer, minimum, maximum, result
 
 
 def copy_file():
-    if os.path.exists("Files_Read/{}_Copy.zarr".format(filename)):
-        shutil.rmtree("Files_Read/{}_Copy.zarr".format(filename))
-    shutil.copytree("Files/{}.zarr".format(filename), "Files_Read/{}.zarr".format(filename))
-    os.rename("Files_Read/{}.zarr".format(filename), "Files_Read/{}_Copy.zarr".format(filename))
+    if os.path.exists("Files_Read/{}_Copy.hdf5".format(filename)):
+        os.remove("Files_Read/{}_Copy.hdf5".format(filename))
+    shutil.copy2("Files/{}.hdf5".format(filename), "Files_Read")
+    os.rename("Files_Read/{}.hdf5".format(filename), "Files_Read/{}_Copy.hdf5".format(filename))
 
 
 def write_file(dataset, operation, time_elapsed, results_file):
-    dataset_type = dataset.name[1:]
+    dataset_name = dataset.name
+    dataset_type = dataset_name[dataset_name.index("/", 1) + 1:]
     results_file.write("Time taken to {} the {} dataset: %f seconds.\n".format(operation, dataset_type) % time_elapsed)
 
 
@@ -144,7 +150,7 @@ if __name__ == "__main__":
             "MODIFY_FIRST_HALF": True,
             "MODIFY_SECOND_HALF": False
         }
-        with open("sample_config.yaml", "w") as f:
+        with open("1.yaml", "w") as f:
             yaml.safe_dump(data, f, sort_keys=False)
 
     config_name = str(
@@ -157,7 +163,7 @@ if __name__ == "__main__":
     min_value = config_file.get("MIN_DATA_VALUE")
     max_value = config_file.get("MAX_DATA_VALUE")
 
-    # Begin populating each group (group is top-level in Zarr hierarchy)
+    # Begin populating each group (group is top-level in HDF5 hierarchy)
     write_group(num_elements, chunk_size, min_value, max_value)
 
     # Copy file to new directory to begin remaining operations
