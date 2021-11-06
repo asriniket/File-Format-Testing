@@ -40,7 +40,7 @@ def run(config_name):
     arr_netcdf.insert(0, "NetCDF")
     arr_zarr.insert(0, "Zarr")
     write_csv(filename, arr_hdf5, arr_netcdf, arr_zarr)
-    Plot.plot_data(filename, str(dimensions))
+    Plot.plot_data(filename, "{} Datasets {}".format(str(num_datasets), str(dimensions)))
 
 
 # Average array values over multiple trials.
