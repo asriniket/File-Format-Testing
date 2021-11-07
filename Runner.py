@@ -33,24 +33,24 @@ def run(config_name):
         delete_files()
 
     # Average out results arrays and create CSV.
-    arr_hdf5 = average_arr(arr_hdf5)
-    arr_netcdf = average_arr(arr_netcdf)
-    arr_zarr = average_arr(arr_zarr)
+    arr_hdf5 = split_arr(arr_hdf5)
+    arr_netcdf = split_arr(arr_netcdf)
+    arr_zarr = split_arr(arr_zarr)
     arr_hdf5.insert(0, "HDF5")
     arr_netcdf.insert(0, "NetCDF")
     arr_zarr.insert(0, "Zarr")
     write_csv(filename, arr_hdf5, arr_netcdf, arr_zarr)
-    Plot.plot_data(filename, "{} Datasets {}".format(str(num_datasets), str(dimensions)))
+    Plot.plot_data(
+        filename, "{} Datasets {}".format(str(num_datasets), str(dimensions)), arr_hdf5, arr_netcdf, arr_zarr)
 
 
-# Average array values over multiple trials.
-def average_arr(arr):
-    avg_creation = sum(arr[::4]) / num_trials
-    avg_write = sum(arr[1::4]) / num_trials
-    avg_open = sum(arr[2::4]) / num_trials
-    avg_read = sum(arr[3::4]) / num_trials
-    arr_new = [avg_creation, avg_write, avg_open, avg_read]
-    return arr_new
+# Split array into 4 sub arrays with each sub array containing one function (e.g. creation time, write time)
+def split_arr(arr):
+    arr_creation_time = arr[::4]
+    arr_write_time = arr[1::4]
+    arr_open_time = arr[2::4]
+    arr_read_time = arr[3::4]
+    return [arr_creation_time, arr_write_time, arr_open_time, arr_read_time]
 
 
 def delete_files():
@@ -61,10 +61,15 @@ def delete_files():
 
 
 def write_csv(filename, hdf5_arr, netcdf_arr, zarr_arr):
-    fields = ["File Format", "Dataset Creation Time", "Dataset Write Time", "Dataset Open Time", "Dataset Read Time"]
+    fields = ["File Format",
+              "Dataset Creation Time",
+              "Dataset Write Time",
+              "Dataset Open Time",
+              "Dataset Read Time"]
     with open(filename + ".csv", "w", newline="") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(fields)
+        # Write down each array instead of its average time, just in case any future visualizations need to be made.
         writer.writerow(hdf5_arr)
         writer.writerow(netcdf_arr)
         writer.writerow(zarr_arr)
@@ -87,6 +92,10 @@ if __name__ == "__main__":
     #         yaml.safe_dump(data, f, sort_keys=False)
     #
     # config = str(input("Enter the configuration file to be used, excluding the file extension.\n"))
+    # run("0")
     run("1")
     run("2")
     run("3")
+    run("4")
+    run("5")
+    run("6")

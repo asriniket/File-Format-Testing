@@ -94,7 +94,9 @@ def write(file_format, filename, num_datasets, dimensions, datatype, minimum, ma
     copy_file(file_format, filename)
     # print("Average time taken to create {} datasets: {}".format(num_datasets, dataset_creation_time / num_datasets))
     # print("Dataset Population Time: {}".format(dataset_population_time))
-    arr = [dataset_creation_time / num_datasets, dataset_population_time]
+
+    # arr contains the average time taken to create each dataset along with the average time taken to write to it.
+    arr = [dataset_creation_time / num_datasets, dataset_population_time / num_datasets]
     return arr
 
 

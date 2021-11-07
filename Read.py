@@ -67,5 +67,7 @@ def read(file_format, filename, num_datasets, dimensions):
             dataset_read_time += (t4 - t3)
     # print("Avg. time taken to open {} datasets: {} second(s).".format(num_datasets, dataset_open_time / num_datasets))
     # print("Total time taken to read {} datasets: {} second(s).".format(num_datasets, dataset_read_time))
-    arr = [dataset_open_time / num_datasets, dataset_read_time]
+
+    # arr contains the average time taken to open each dataset along with the average time taken to read from it.
+    arr = [dataset_open_time / num_datasets, dataset_read_time / num_datasets]
     return arr
