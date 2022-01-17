@@ -40,7 +40,8 @@ def plot_data(filename, title, arr_hdf5, arr_netcdf, arr_zarr):
     plt.legend()
     plt.tight_layout()
     # plt.show()
-    plt.savefig("Plots/{}_Create_Open.png".format(filename), bbox_inches='tight')
+    plt.savefig("Plots/{}_Create_Open.png".format(filename),
+                bbox_inches='tight')
     plt.clf()
     plt.cla()
     plt.close()
@@ -70,7 +71,8 @@ def plot_data(filename, title, arr_hdf5, arr_netcdf, arr_zarr):
     plt.legend()
     plt.tight_layout()
     # plt.show()
-    plt.savefig("Plots/{}_Read_Write.png".format(filename), bbox_inches='tight')
+    plt.savefig("Plots/{}_Read_Write.png".format(filename),
+                bbox_inches='tight')
     plt.clf()
     plt.cla()
     plt.close()

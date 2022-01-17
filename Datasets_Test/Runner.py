@@ -14,20 +14,23 @@ def run(config_name):
     arr_hdf5 = []
     arr_netcdf = []
     arr_zarr = []
-    with open("{}.yaml".format(config_name), "r") as file:
+    with open("Datasets_Test/{}.yaml".format(config_name), "r") as file:
         config_file = yaml.safe_load(file)
         filename = config_file.get("FILE_NAME")
         num_datasets = config_file.get("NUMBER_DATASETS")
         dimensions = config_file.get("NUMBER_ELEMENTS")
-
-    # Run test, and add it to the results array for storing.
+    # Run test.ipynb, and add it to the results array for storing.
     for i in range(0, num_trials):
         # Arr.extend is used to append the array results from calling the write / read functions to the file format arr.
-        arr_hdf5.extend(Write.write("HDF5", filename, num_datasets, dimensions))
+        arr_hdf5.extend(Write.write(
+            "HDF5", filename, num_datasets, dimensions))
         arr_hdf5.extend(Read.read("HDF5", filename, num_datasets, dimensions))
-        arr_netcdf.extend(Write.write("NetCDF", filename, num_datasets, dimensions))
-        arr_netcdf.extend(Read.read("NetCDF", filename, num_datasets, dimensions))
-        arr_zarr.extend(Write.write("Zarr", filename, num_datasets, dimensions))
+        arr_netcdf.extend(Write.write(
+            "NetCDF", filename, num_datasets, dimensions))
+        arr_netcdf.extend(
+            Read.read("NetCDF", filename, num_datasets, dimensions))
+        arr_zarr.extend(Write.write(
+            "Zarr", filename, num_datasets, dimensions))
         arr_zarr.extend(Read.read("Zarr", filename, num_datasets, dimensions))
 
         # Delete all generated files once a trial is completed.

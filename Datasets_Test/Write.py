@@ -22,7 +22,8 @@ def write(file_format, filename, num_datasets, dimensions):
         for i in range(0, num_datasets):
             data = generate_array(dimensions)
             t1 = time.perf_counter()
-            dataset = file.create_dataset("Dataset_{}".format(i), shape=dimensions, dtype="f")
+            dataset = file.create_dataset(
+                "Dataset_{}".format(i), shape=dimensions, dtype="f")
             t2 = time.perf_counter()
             dataset_creation_time += (t2 - t1)
 
@@ -51,7 +52,8 @@ def write(file_format, filename, num_datasets, dimensions):
         for i in range(0, num_datasets):
             data = generate_array(dimensions)
             t1 = time.perf_counter()
-            dataset = file.createVariable("Dataset_{}".format(i), dimensions=axes, datatype="f")
+            dataset = file.createVariable(
+                "Dataset_{}".format(i), dimensions=axes, datatype="f")
             t2 = time.perf_counter()
             dataset_creation_time += (t2 - t1)
 
@@ -66,7 +68,8 @@ def write(file_format, filename, num_datasets, dimensions):
         for i in range(0, num_datasets):
             data = generate_array(dimensions)
             t1 = time.perf_counter()
-            dataset = file.create_dataset("Dataset_{}".format(i), shape=dimensions, dtype="f")
+            dataset = file.create_dataset(
+                "Dataset_{}".format(i), shape=dimensions, dtype="f")
             t2 = time.perf_counter()
             dataset_creation_time += (t2 - t1)
 
@@ -79,7 +82,8 @@ def write(file_format, filename, num_datasets, dimensions):
     copy_file(file_format, filename)
 
     # Return average time taken to create one dataset along with the average time taken to write to it.
-    arr = [dataset_creation_time / num_datasets, dataset_population_time / num_datasets]
+    arr = [dataset_creation_time / num_datasets,
+           dataset_population_time / num_datasets]
     return arr
 
 
@@ -102,14 +106,18 @@ def copy_file(file_format, filename):
         if os.path.exists("Files_Read/{}_Copy.hdf5".format(filename)):
             os.remove("Files_Read/{}_Copy.hdf5".format(filename))
         shutil.copy2("Files/{}.hdf5".format(filename), "Files_Read")
-        os.rename("Files_Read/{}.hdf5".format(filename), "Files_Read/{}_Copy.hdf5".format(filename))
+        os.rename("Files_Read/{}.hdf5".format(filename),
+                  "Files_Read/{}_Copy.hdf5".format(filename))
     elif file_format == "NetCDF":
         if os.path.exists("Files_Read/{}_Copy.netc".format(filename)):
             os.remove("Files_Read/{}_Copy.netc".format(filename))
         shutil.copy2("Files/{}.netc".format(filename), "Files_Read")
-        os.rename("Files_Read/{}.netc".format(filename), "Files_Read/{}_Copy.netc".format(filename))
+        os.rename("Files_Read/{}.netc".format(filename),
+                  "Files_Read/{}_Copy.netc".format(filename))
     elif file_format == "Zarr":
         if os.path.exists("Files_Read/{}_Copy.zarr".format(filename)):
             shutil.rmtree("Files_Read/{}_Copy.zarr".format(filename))
-        shutil.copytree("Files/{}.zarr".format(filename), "Files_Read/{}.zarr".format(filename))
-        os.rename("Files_Read/{}.zarr".format(filename), "Files_Read/{}_Copy.zarr".format(filename))
+        shutil.copytree("Files/{}.zarr".format(filename),
+                        "Files_Read/{}.zarr".format(filename))
+        os.rename("Files_Read/{}.zarr".format(filename),
+                  "Files_Read/{}_Copy.zarr".format(filename))
