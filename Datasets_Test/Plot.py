@@ -7,8 +7,10 @@ import numpy as np
 def plot_data(filename, title, arr_hdf5, arr_netcdf, arr_zarr):
     if not os.path.exists("Plots"):
         os.makedirs("Plots")
+
     # Convert to numpy.
     # 0th Index of 2D array represents Creation time, 1st Index Write time, 2nd Index Open Time, 3rd Index Read time.
+    # Start from the 1st index as the 0th index is the file format name.
     hdf5_arr = np.array(arr_hdf5[1:])
     netcdf_arr = np.array(arr_netcdf[1:])
     zarr_arr = np.array(arr_zarr[1:])

@@ -1,0 +1,6 @@
+h5py
+matplotlib
+netCDF4
+numpy
+PyYAML
+zarr

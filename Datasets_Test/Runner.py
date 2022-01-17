@@ -10,6 +10,7 @@ import Write
 
 
 def run(config_name):
+    # Initialize three arrays to hold the times across multiple trials.
     arr_hdf5 = []
     arr_netcdf = []
     arr_zarr = []
@@ -21,27 +22,32 @@ def run(config_name):
 
     # Run test, and add it to the results array for storing.
     for i in range(0, num_trials):
+        # Arr.extend is used to append the array results from calling the write / read functions to the file format arr.
         arr_hdf5.extend(Write.write("HDF5", filename, num_datasets, dimensions))
-        # arr_hdf5.extend(Read.read("HDF5", filename, num_datasets, dimensions))
+        arr_hdf5.extend(Read.read("HDF5", filename, num_datasets, dimensions))
         arr_netcdf.extend(Write.write("NetCDF", filename, num_datasets, dimensions))
-        # arr_netcdf.extend(Read.read("NetCDF", filename, num_datasets, dimensions))
+        arr_netcdf.extend(Read.read("NetCDF", filename, num_datasets, dimensions))
         arr_zarr.extend(Write.write("Zarr", filename, num_datasets, dimensions))
-        # arr_zarr.extend(Read.read("Zarr", filename, num_datasets, dimensions))
-        # delete_files()
+        arr_zarr.extend(Read.read("Zarr", filename, num_datasets, dimensions))
+
+        # Delete all generated files once a trial is completed.
+        delete_files()
 
     # Average out results arrays and create CSV.
-    # arr_hdf5 = split_arr(arr_hdf5)
-    # arr_netcdf = split_arr(arr_netcdf)
-    # arr_zarr = split_arr(arr_zarr)
-    # arr_hdf5.insert(0, "HDF5")
-    # arr_netcdf.insert(0, "NetCDF")
-    # arr_zarr.insert(0, "Zarr")
-    # write_csv(filename, arr_hdf5, arr_netcdf, arr_zarr)
-    # Plot.plot_data(
-    #     filename, "{} Datasets {}".format(str(num_datasets), str(dimensions)), arr_hdf5, arr_netcdf, arr_zarr)
+    arr_hdf5 = split_arr(arr_hdf5)
+    arr_netcdf = split_arr(arr_netcdf)
+    arr_zarr = split_arr(arr_zarr)
+
+    # Insert file format name for identification in the CSV.
+    arr_hdf5.insert(0, "HDF5")
+    arr_netcdf.insert(0, "NetCDF")
+    arr_zarr.insert(0, "Zarr")
+    write_csv(filename, arr_hdf5, arr_netcdf, arr_zarr)
+    Plot.plot_data(
+        filename, "{} Datasets {}".format(str(num_datasets), str(dimensions)), arr_hdf5, arr_netcdf, arr_zarr)
 
 
-# Split array into 4 sub arrays with each sub array containing one function (e.g. creation time, write time)
+# Split array into four sub-arrays, with each sub-array representing the time taken to perform a function across trials.
 def split_arr(arr):
     arr_creation_time = arr[::4]
     arr_write_time = arr[1::4]
@@ -66,7 +72,8 @@ def write_csv(filename, hdf5_arr, netcdf_arr, zarr_arr):
     with open(filename + ".csv", "w", newline="") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(fields)
-        # Write down each array instead of its average time, just in case any future visualizations need to be made.
+
+        # Write down all times instead of the average time, just in case any future visualizations need to be made.
         writer.writerow(hdf5_arr)
         writer.writerow(netcdf_arr)
         writer.writerow(zarr_arr)
