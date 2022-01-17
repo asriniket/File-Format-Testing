@@ -44,7 +44,7 @@ def plot_data(filename, title, arr_hdf5, arr_netcdf, arr_zarr):
     plt.close()
 
     # Read / Write Arrays
-    plt.title(title + " Elements Dataset Read / Write Times")
+    plt.title(title + " Elements Dataset Write / Read Times")
     plt.xlabel("Operation")
     plt.ylabel("Time (seconds)")
     width = .25

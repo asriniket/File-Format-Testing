@@ -13,57 +13,57 @@ def read(file_format, filename, num_datasets, dimensions):
         file = h5py.File("Files_Read/{}_Copy.hdf5".format(filename), "r")
         # Open all datasets and read each one of them.
         for i in range(0, num_datasets):
-            t1 = time.time()
+            t1 = time.perf_counter()
             dataset = file["Dataset_{}".format(i)]
-            t2 = time.time()
+            t2 = time.perf_counter()
             dataset_open_time += (t2 - t1)
 
-            t3 = time.time()
+            t3 = time.perf_counter()
             if len(dimensions) == 1:
                 print(dataset[:dimensions[0]])
             elif len(dimensions) == 2:
                 print(dataset[:dimensions[0], :dimensions[1]])
             else:
                 print(dataset[:dimensions[0], :dimensions[1], :dimensions[2]])
-            t4 = time.time()
+            t4 = time.perf_counter()
             dataset_read_time += (t4 - t3)
         file.close()
     elif file_format == "NetCDF":
         file = Dataset("Files_Read/{}_Copy.netc".format(filename), "r")
         # Open all datasets and read each one of them.
         for i in range(0, num_datasets):
-            t1 = time.time()
+            t1 = time.perf_counter()
             dataset = file.variables["Dataset_{}".format(i)]
-            t2 = time.time()
+            t2 = time.perf_counter()
             dataset_open_time += (t2 - t1)
 
-            t3 = time.time()
+            t3 = time.perf_counter()
             if len(dimensions) == 1:
                 print(dataset[:dimensions[0]])
             elif len(dimensions) == 2:
                 print(dataset[:dimensions[0], :dimensions[1]])
             else:
                 print(dataset[:dimensions[0], :dimensions[1], :dimensions[2]])
-            t4 = time.time()
+            t4 = time.perf_counter()
             dataset_read_time += (t4 - t3)
         file.close()
     elif file_format == "Zarr":
         file = zarr.open("Files_Read/{}_Copy.zarr".format(filename), "r")
         # Open all datasets and read each one of them.
         for i in range(0, num_datasets):
-            t1 = time.time()
+            t1 = time.perf_counter()
             dataset = file.get("Dataset_{}".format(i))
-            t2 = time.time()
+            t2 = time.perf_counter()
             dataset_open_time += (t2 - t1)
 
-            t3 = time.time()
+            t3 = time.perf_counter()
             if len(dimensions) == 1:
                 print(dataset[:dimensions[0]])
             elif len(dimensions) == 2:
                 print(dataset[:dimensions[0], :dimensions[1]])
             else:
                 print(dataset[:dimensions[0], :dimensions[1], :dimensions[2]])
-            t4 = time.time()
+            t4 = time.perf_counter()
             dataset_read_time += (t4 - t3)
     # print("Avg. time taken to open {} datasets: {} second(s).".format(num_datasets, dataset_open_time / num_datasets))
     # print("Total time taken to read {} datasets: {} second(s).".format(num_datasets, dataset_read_time))

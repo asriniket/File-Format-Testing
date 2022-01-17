@@ -1,5 +1,4 @@
 import os
-import random
 import shutil
 import time
 
@@ -10,34 +9,31 @@ from netCDF4 import Dataset
 
 
 # Creates datasets for the specified file format and populates them. dimensions, and chunks are tuples.
-def write(file_format, filename, num_datasets, dimensions, datatype, minimum, maximum, chunk=None):
+def write(file_format, filename, num_datasets, dimensions):
     if not os.path.exists("Files"):
         os.makedirs("Files")
     if not os.path.exists("Files_Read"):
         os.makedirs("Files_Read")
-    is_integer = True if datatype == "i" else False
-    data = generate_array(dimensions, is_integer, minimum, maximum)
     dataset_creation_time = 0.0
     dataset_population_time = 0.0
-    if chunk == 0:
-        chunk = None
     if file_format == "HDF5":
         file = h5py.File("Files/{}.hdf5".format(filename), "w")
         # Create all datasets and populate each one of them.
         for i in range(0, num_datasets):
-            t1 = time.time()
-            dataset = file.create_dataset("Dataset_{}".format(i), shape=dimensions, dtype=datatype, chunks=chunk)
-            t2 = time.time()
+            data = generate_array(dimensions)
+            t1 = time.perf_counter()
+            dataset = file.create_dataset("Dataset_{}".format(i), shape=dimensions, dtype="f")
+            t2 = time.perf_counter()
             dataset_creation_time += (t2 - t1)
 
-            t3 = time.time()
+            t3 = time.perf_counter()
             if len(dimensions) == 1:
                 dataset[:dimensions[0]] = data
             elif len(dimensions) == 2:
                 dataset[:dimensions[0], :dimensions[1]] = data
             else:
                 dataset[:dimensions[0], :dimensions[1], :dimensions[2]] = data
-            t4 = time.time()
+            t4 = time.perf_counter()
             dataset_population_time += (t4 - t3)
         file.close()
     elif file_format == "NetCDF":
@@ -56,39 +52,41 @@ def write(file_format, filename, num_datasets, dimensions, datatype, minimum, ma
             axes = ("x", "y", "z")
         # Create all datasets and populate each one of them.
         for i in range(0, num_datasets):
-            t1 = time.time()
+            data = generate_array(dimensions)
+            t1 = time.perf_counter()
             dataset = file.createVariable(
-                "Dataset_{}".format(i), dimensions=axes, datatype=datatype, chunksizes=chunk)
-            t2 = time.time()
+                "Dataset_{}".format(i), dimensions=axes, datatype="f")
+            t2 = time.perf_counter()
             dataset_creation_time += (t2 - t1)
 
-            t3 = time.time()
+            t3 = time.perf_counter()
             if len(dimensions) == 1:
                 dataset[:dimensions[0]] = data
             elif len(dimensions) == 2:
                 dataset[:dimensions[0], :dimensions[1]] = data
             else:
                 dataset[:dimensions[0], :dimensions[1], :dimensions[2]] = data
-            t4 = time.time()
+            t4 = time.perf_counter()
             dataset_population_time += (t4 - t3)
         file.close()
     elif file_format == "Zarr":
         file = zarr.open("Files/{}.zarr".format(filename), "w")
         # Create all datasets and populate each one of them.
         for i in range(0, num_datasets):
-            t1 = time.time()
-            dataset = file.create_dataset("Dataset_{}".format(i), shape=dimensions, dtype=datatype, chunks=chunk)
-            t2 = time.time()
+            data = generate_array(dimensions)
+            t1 = time.perf_counter()
+            dataset = file.create_dataset("Dataset_{}".format(i), shape=dimensions, dtype="f")
+            t2 = time.perf_counter()
             dataset_creation_time += (t2 - t1)
 
-            t3 = time.time()
+            t3 = time.perf_counter()
             if len(dimensions) == 1:
                 dataset[:dimensions[0]] = data
             elif len(dimensions) == 2:
                 dataset[:dimensions[0], :dimensions[1]] = data
             else:
                 dataset[:dimensions[0], :dimensions[1], :dimensions[2]] = data
-            t4 = time.time()
+            t4 = time.perf_counter()
             dataset_population_time += (t4 - t3)
 
     copy_file(file_format, filename)
@@ -100,35 +98,17 @@ def write(file_format, filename, num_datasets, dimensions, datatype, minimum, ma
     return arr
 
 
-def generate_array(num_elements, is_integer, minimum, maximum):
-    random.seed(time.time())
+def generate_array(num_elements):
+    np.random.seed()
     if len(num_elements) == 1:
-        arr = np.zeros((num_elements[0],))
-        for i in range(0, num_elements[0]):
-            if is_integer:
-                num = random.randint(minimum, maximum)
-            else:
-                num = random.uniform(minimum, maximum)
-            arr[i] = num
+        a = num_elements[0]
+        arr = np.random.rand(a).astype(np.float32)
     elif len(num_elements) == 2:
-        arr = np.zeros((num_elements[0], num_elements[1]))
-        for i in range(0, num_elements[0]):
-            for j in range(0, num_elements[1]):
-                if is_integer:
-                    num = random.randint(minimum, maximum)
-                else:
-                    num = random.uniform(minimum, maximum)
-                arr[i, j] = num
+        a, b = tuple(num_elements)
+        arr = np.random.rand(a, b).astype(np.float32)
     else:
-        arr = np.zeros((num_elements[0], num_elements[1], num_elements[2]))
-        for i in range(0, num_elements[0]):
-            for j in range(0, num_elements[1]):
-                for k in range(0, num_elements[2]):
-                    if is_integer:
-                        num = random.randint(minimum, maximum)
-                    else:
-                        num = random.uniform(minimum, maximum)
-                    arr[i, j, k] = num
+        a, b, c = tuple(num_elements)
+        arr = np.random.rand(a, b, c).astype(np.float32)
     return arr
 
 
