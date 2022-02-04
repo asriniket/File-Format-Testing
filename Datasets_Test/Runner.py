@@ -10,7 +10,7 @@ import Write
 
 
 def run(file_formats, config_name, num_trials):
-    with open("{}.yaml".format(config_name), "r") as file:
+    with open(f"{config_name}.yaml", "r") as file:
         config_file = yaml.safe_load(file)
         filename = config_file.get("FILE_NAME")
         num_datasets = config_file.get("NUMBER_DATASETS")
@@ -50,8 +50,13 @@ if __name__ == "__main__":
     #         "NUMBER_DATASETS": 0,
     #         "NUMBER_ELEMENTS": [0, 0, 0],
     #     }
-    #     with open("sample_config.yaml", "w") as f:
+    #     with open("1.yaml", "w") as f:
     #         yaml.safe_dump(data, f, sort_keys=False)
     # config = str(input("Enter the configuration file to be used, excluding the file extension.\n"))
     file_formats_list = ["HDF5", "NetCDF", "Zarr"]
-    run(file_formats_list, "sample_config", 5)
+    run(file_formats_list, "1", 5)
+    run(file_formats_list, "2", 5)
+    run(file_formats_list, "3", 5)
+    run(file_formats_list, "4", 5)
+    run(file_formats_list, "5", 5)
+    run(file_formats_list, "6", 5)

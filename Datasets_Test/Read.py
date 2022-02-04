@@ -9,23 +9,23 @@ def read(file_format, filename, num_datasets, dimensions):
     dataset_open_time = 0.0
     dataset_read_time = 0.0
     if file_format == "HDF5":
-        file = h5py.File("Files_Read/{}_Copy.hdf5".format(filename), "r")
+        file = h5py.File(f"Files_Read/{filename}_Copy.hdf5", "r")
     elif file_format == "NetCDF":
-        file = Dataset("Files_Read/{}_Copy.netc".format(filename), "r")
+        file = Dataset(f"Files_Read/{filename}_Copy.netc", "r")
     else:
-        file = zarr.open("Files_Read/{}_Copy.zarr".format(filename), "r")
+        file = zarr.open(f"Files_Read/{filename}_Copy.zarr", "r")
     for i in range(0, num_datasets):
         if file_format == "HDF5":
             t1 = time.perf_counter()
-            dataset = file["Dataset_{}".format(i)]
+            dataset = file[f"Dataset_{i}"]
             t2 = time.perf_counter()
         elif file_format == "NetCDF":
             t1 = time.perf_counter()
-            dataset = file.variables["Dataset_{}".format(i)]
+            dataset = file.variables[f"Dataset_{i}"]
             t2 = time.perf_counter()
         else:
             t1 = time.perf_counter()
-            dataset = file.get("Dataset_{}".format(i))
+            dataset = file.get(f"Dataset_{i}")
             t2 = time.perf_counter()
         t3 = time.perf_counter()
         if len(dimensions) == 1:

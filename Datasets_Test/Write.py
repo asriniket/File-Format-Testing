@@ -17,9 +17,9 @@ def write(file_format, filename, num_datasets, dimensions):
     dataset_creation_time = 0.0
     dataset_population_time = 0.0
     if file_format == "HDF5":
-        file = h5py.File("Files/{}.hdf5".format(filename), "w")
+        file = h5py.File(f"Files/{filename}.hdf5", "w")
     elif file_format == "NetCDF":
-        file = Dataset("Files/{}.netc".format(filename), "w", format="NETCDF4")
+        file = Dataset(f"Files/{filename}.netc", "w", format="NETCDF4")
         if len(dimensions) == 1:
             file.createDimension("x", None)
             axes = ("x",)
@@ -33,16 +33,16 @@ def write(file_format, filename, num_datasets, dimensions):
             file.createDimension("z", None)
             axes = ("x", "y", "z")
     else:
-        file = zarr.open("Files/{}.zarr".format(filename), "w")
+        file = zarr.open(f"Files/{filename}.zarr", "w")
     for i in range(0, num_datasets):
         data = generate_array(dimensions)
         if not file_format == "NetCDF":
             t1 = time.perf_counter()
-            dataset = file.create_dataset("Dataset_{}".format(i), shape=dimensions, dtype="f")
+            dataset = file.create_dataset(f"Dataset_{i}", shape=dimensions, dtype="f")
             t2 = time.perf_counter()
         else:
             t1 = time.perf_counter()
-            dataset = file.createVariable("Dataset_{}".format(i), dimensions=axes, datatype="f")
+            dataset = file.createVariable(f"Dataset_{i}", dimensions=axes, datatype="f")
             t2 = time.perf_counter()
 
         t3 = time.perf_counter()

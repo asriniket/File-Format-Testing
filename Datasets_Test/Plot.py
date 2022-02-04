@@ -30,7 +30,7 @@ def plot(file_formats, num_datasets, dimensions):
     plt.legend()
     plt.tight_layout()
     plt.savefig(f"Data/Plots/{num_datasets}_{dimensions}_Read_Write.png")
-    plt.show()
+    # plt.show()
 
     plt.figure(2)
     plt_labels = ["Dataset Create Time", "Dataset Open Time"]
@@ -51,7 +51,7 @@ def plot(file_formats, num_datasets, dimensions):
     plt.legend()
     plt.tight_layout()
     plt.savefig(f"Data/Plots/{num_datasets}_{dimensions}_Create_Open.png")
-    plt.show()
+    # plt.show()
 
     plt.cla()
     plt.clf()
