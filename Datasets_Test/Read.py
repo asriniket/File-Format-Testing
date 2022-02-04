@@ -39,5 +39,6 @@ def read(file_format, filename, num_datasets, dimensions):
         dataset_read_time += (t4 - t3)
     if not file_format == "Zarr":
         file.close()
-    arr = [1000 * dataset_open_time / num_datasets, 1000 * dataset_read_time / num_datasets]
+    arr = [1000 * dataset_open_time / num_datasets,
+           1000 * dataset_read_time / num_datasets]
     return arr

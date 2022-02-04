@@ -17,15 +17,19 @@ def run(file_formats, config_name, num_trials):
         dimensions = config_file.get("NUMBER_ELEMENTS")
 
     for file_format in file_formats:
-        csvfile = open(f"Data/{file_format}_{num_datasets}_{dimensions}.csv", "w")
+        csvfile = open(
+            f"Data/{file_format}_{num_datasets}_{dimensions}.csv", "w")
         writer = csv.writer(csvfile)
         writer.writerow(
             [file_format, "Dataset Creation Time", "Dataset Write Time", "Dataset Open Time", "Dataset Read Time"])
 
         for i in range(0, num_trials):
-            results_write = Write.write(file_format, filename, num_datasets, dimensions)
-            results_read = Read.read(file_format, filename, num_datasets, dimensions)
-            writer.writerow([f"Trial {i + 1}", results_write[0], results_write[1], results_read[0], results_read[1]])
+            results_write = Write.write(
+                file_format, filename, num_datasets, dimensions)
+            results_read = Read.read(
+                file_format, filename, num_datasets, dimensions)
+            writer.writerow([f"Trial {i + 1}", results_write[0],
+                            results_write[1], results_read[0], results_read[1]])
             delete_files()
         csvfile.close()
     Plot.plot(file_formats, num_datasets, dimensions)

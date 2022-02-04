@@ -38,11 +38,13 @@ def write(file_format, filename, num_datasets, dimensions):
         data = generate_array(dimensions)
         if not file_format == "NetCDF":
             t1 = time.perf_counter()
-            dataset = file.create_dataset(f"Dataset_{i}", shape=dimensions, dtype="f")
+            dataset = file.create_dataset(
+                f"Dataset_{i}", shape=dimensions, dtype="f")
             t2 = time.perf_counter()
         else:
             t1 = time.perf_counter()
-            dataset = file.createVariable(f"Dataset_{i}", dimensions=axes, datatype="f")
+            dataset = file.createVariable(
+                f"Dataset_{i}", dimensions=axes, datatype="f")
             t2 = time.perf_counter()
 
         t3 = time.perf_counter()
@@ -55,7 +57,8 @@ def write(file_format, filename, num_datasets, dimensions):
         file.close()
     copy_file(file_format, filename)
 
-    arr = [1000 * dataset_creation_time / num_datasets, 1000 * dataset_population_time / num_datasets]
+    arr = [1000 * dataset_creation_time / num_datasets,
+           1000 * dataset_population_time / num_datasets]
     return arr
 
 
@@ -76,10 +79,14 @@ def generate_array(num_elements):
 def copy_file(file_format, filename):
     if file_format == "HDF5":
         shutil.copy(f"Files/{filename}.hdf5", "Files_Read")
-        os.rename(f"Files_Read/{filename}.hdf5", f"Files_Read/{filename}_Copy.hdf5")
+        os.rename(f"Files_Read/{filename}.hdf5",
+                  f"Files_Read/{filename}_Copy.hdf5")
     elif file_format == "NetCDF":
         shutil.copy(f"Files/{filename}.netc", "Files_Read")
-        os.rename(f"Files_Read/{filename}.netc", f"Files_Read/{filename}_Copy.netc")
+        os.rename(f"Files_Read/{filename}.netc",
+                  f"Files_Read/{filename}_Copy.netc")
     elif file_format == "Zarr":
-        shutil.copytree(f"Files/{filename}.zarr", f"Files_Read/{filename}.zarr")
-        os.rename(f"Files_Read/{filename}.zarr", f"Files_Read/{filename}_Copy.zarr")
+        shutil.copytree(f"Files/{filename}.zarr",
+                        f"Files_Read/{filename}.zarr")
+        os.rename(f"Files_Read/{filename}.zarr",
+                  f"Files_Read/{filename}_Copy.zarr")
