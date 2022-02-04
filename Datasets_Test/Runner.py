@@ -10,7 +10,7 @@ import Write
 
 
 def run(file_formats, config_name, num_trials):
-    with open(f"{config_name}.yaml", "r") as file:
+    with open(f"Datasets_Test/{config_name}.yaml", "r") as file:
         config_file = yaml.safe_load(file)
         filename = config_file.get("FILE_NAME")
         num_datasets = config_file.get("NUMBER_DATASETS")

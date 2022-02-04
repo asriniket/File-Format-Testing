@@ -35,20 +35,26 @@ def write(file_format, filename, num_datasets, dimensions):
     else:
         file = zarr.open(f"Files/{filename}.zarr", "w")
     for i in range(0, num_datasets):
-        data = generate_array(dimensions)
+        data = generate_array(tuple(dimensions))
         if not file_format == "NetCDF":
             t1 = time.perf_counter()
             dataset = file.create_dataset(
                 f"Dataset_{i}", shape=dimensions, dtype="f")
-            t2 = time.perf_counter()
         else:
             t1 = time.perf_counter()
             dataset = file.createVariable(
                 f"Dataset_{i}", dimensions=axes, datatype="f")
-            t2 = time.perf_counter()
+        t2 = time.perf_counter()
 
-        t3 = time.perf_counter()
-        dataset = data
+        if len(dimensions) == 1:
+            t3 = time.perf_counter()
+            dataset[:dimensions[0]] = data
+        elif len(dimensions) == 2:
+            t3 = time.perf_counter()
+            dataset[:dimensions[0], :dimensions[1]] = data
+        else:
+            t3 = time.perf_counter()
+            dataset[:dimensions[0], :dimensions[1], :dimensions[2]] = data
         t4 = time.perf_counter()
         dataset_creation_time += (t2 - t1)
         dataset_population_time += (t4 - t3)
