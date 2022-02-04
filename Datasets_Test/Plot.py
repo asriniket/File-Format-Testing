@@ -1,78 +1,78 @@
-import os
-
+import pandas as pd
+import csv
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+def plot(file_formats, num_datasets, dimensions):
+        if not os.path.exists("Data/Plots"):
+                os.mkdir("Data/Plots")
+        create_time, write_time, open_time, read_time, error = process_csv(file_formats, num_datasets, dimensions)
+        width = .25
 
+        plt.figure(1)
+        plt_labels = ["Dataset Read Time", "Dataset Write Time"]
+        x = np.arange(len(plt_labels))
+        offset = -width
+        plt.ylabel("Average Time (s)")
+        plt.title(f"{num_datasets} Datasets {dimensions} Elements Dataset Read / Write Times")
+        plt.xticks(x, plt_labels)
+        for i in range(0, len(file_formats)):
+                # Error format: Each row represents one file format.
+                bar_read_write = plt.bar(x + offset, [read_time[i], write_time[i]], width, label=file_formats[i], edgecolor="black", yerr=[error[i][3], error[i][1]])
+                plt.bar_label(bar_read_write,padding=3)
+                offset+=width
+        plt.legend()
+        plt.tight_layout()      
+        plt.savefig(f"Data/Plots/{num_datasets}_{dimensions}_Read_Write.png")
+        plt.show()
 
-def plot_data(filename, title, arr_hdf5, arr_netcdf, arr_zarr):
-    if not os.path.exists("Plots"):
-        os.makedirs("Plots")
+        plt.figure(2)
+        plt_labels = ["Dataset Create Time", "Dataset Open Time"]
+        x = np.arange(len(plt_labels))
+        offset = -width
+        plt.ylabel("Average Time (s)")
+        plt.title(f"{num_datasets} Datasets {dimensions} Elements Dataset Create / Open Times")
+        plt.xticks(x, plt_labels)
+        for i in range(0, len(file_formats)):
+                bar_create_open = plt.bar(x + offset, [create_time[i], open_time[i]], width, label=file_formats[i], edgecolor="black", yerr=[error[i][0], error[i][2]])
+                plt.bar_label(bar_create_open, padding=3)
+                offset+=width
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(f"Data/Plots/{num_datasets}_{dimensions}_Create_Open.png")
+        plt.show()
+        
+        plt.cla()
+        plt.clf()
 
-    # Convert to numpy.
-    # 0th Index of 2D array represents Creation time, 1st Index Write time, 2nd Index Open Time, 3rd Index Read time.
-    # Start from the 1st index as the 0th index is the file format name.
-    hdf5_arr = np.array(arr_hdf5[1:])
-    netcdf_arr = np.array(arr_netcdf[1:])
-    zarr_arr = np.array(arr_zarr[1:])
+def process_csv(file_formats, num_datasets, dimensions):
+        total_dataset_create_time = []
+        total_dataset_write_time = []
+        total_dataset_open_time = []
+        total_dataset_read_time = []
+        error = []
+        for file_format in file_formats:
+                df = pd.read_csv(f"Data/{file_format}_{num_datasets}_{dimensions}.csv")
+                dataset_create_time, dataset_write_time, dataset_open_time, dataset_read_time = df.iloc[:, 1:].mean(axis=0)
+                create_deviation, write_deviation, open_deviation, read_deviation = df.iloc[:, 1:].std(axis=0)
+                total_dataset_create_time.append(dataset_create_time)
+                total_dataset_write_time.append(dataset_write_time)
+                total_dataset_open_time.append(dataset_open_time)
+                total_dataset_read_time.append(dataset_read_time)
+                error.append([create_deviation, write_deviation, open_deviation, read_deviation])
+                if df.iloc[-1, 0] == "Average":
+                        continue
+                average_values = pd.DataFrame({
+                        file_format : "Average", 
+                        "Dataset Creation Time" : [dataset_create_time], 
+                        "Dataset Write Time" : [dataset_write_time], 
+                        "Dataset Open Time" : [dataset_open_time], 
+                        "Dataset Read Time" : [dataset_read_time]
+                })
+                df = pd.concat([df, average_values], ignore_index = True)
+                df.to_csv(f"Data/{file_format}_{num_datasets}_{dimensions}.csv", index=False)
+        return total_dataset_create_time, total_dataset_write_time, total_dataset_open_time, total_dataset_read_time, error
 
-    # Creation / Open Arrays
-    plt.title(title + " Elements Dataset Create / Open Times")
-    plt.xlabel("Operation")
-    plt.ylabel("Time (seconds)")
-    width = .25
-    x_axis_labels = ["Dataset Create", "Dataset Open"]
-    x_axis = np.arange(len(x_axis_labels))
-    plt.bar(x_axis - width,
-            [np.mean(hdf5_arr[0]), np.mean(hdf5_arr[2])],
-            yerr=[np.std(hdf5_arr[0]), np.std(hdf5_arr[2])],
-            capsize=10, color="r", width=width, edgecolor="black", label="HDF5")
-    plt.bar(x_axis,
-            [np.mean(netcdf_arr[0]), np.mean(netcdf_arr[2])],
-            yerr=[np.std(netcdf_arr[0]), np.std(netcdf_arr[2])],
-            capsize=10, color="g", width=width, edgecolor="black", label="NetCDF")
-    plt.bar(x_axis + width,
-            [np.mean(zarr_arr[0]), np.mean(zarr_arr[2])],
-            yerr=[np.std(zarr_arr[0]), np.std(zarr_arr[2])],
-            capsize=10, color="b", width=width, edgecolor="black", label="Zarr")
-    plt.xticks(x_axis, x_axis_labels)
-    plt.locator_params(axis="y", nbins=20)
-    plt.ylim(ymin=0)
-    plt.legend()
-    plt.tight_layout()
-    # plt.show()
-    plt.savefig("Plots/{}_Create_Open.png".format(filename),
-                bbox_inches='tight')
-    plt.clf()
-    plt.cla()
-    plt.close()
-
-    # Read / Write Arrays
-    plt.title(title + " Elements Dataset Write / Read Times")
-    plt.xlabel("Operation")
-    plt.ylabel("Time (seconds)")
-    width = .25
-    x_axis_labels = ["Dataset Write", "Dataset Read"]
-    x_axis = np.arange(len(x_axis_labels))
-    plt.bar(x_axis - width,
-            [np.mean(hdf5_arr[1]), np.mean(hdf5_arr[3])],
-            yerr=[np.std(hdf5_arr[1]), np.std(hdf5_arr[3])],
-            capsize=10, color="r", width=width, edgecolor="black", label="HDF5")
-    plt.bar(x_axis,
-            [np.mean(netcdf_arr[1]), np.mean(netcdf_arr[3])],
-            yerr=[np.std(netcdf_arr[1]), np.std(netcdf_arr[3])],
-            capsize=10, color="g", width=width, edgecolor="black", label="NetCDF")
-    plt.bar(x_axis + width,
-            [np.mean(zarr_arr[1]), np.mean(zarr_arr[3])],
-            yerr=[np.std(zarr_arr[1]), np.std(zarr_arr[3])],
-            capsize=10, color="b", width=width, edgecolor="black", label="Zarr")
-    plt.xticks(x_axis, x_axis_labels)
-    plt.locator_params(axis="y", nbins=20)
-    plt.ylim(ymin=0)
-    plt.legend()
-    plt.tight_layout()
-    # plt.show()
-    plt.savefig("Plots/{}_Read_Write.png".format(filename),
-                bbox_inches='tight')
-    plt.clf()
-    plt.cla()
-    plt.close()
+if __name__ == "__main__":
+        file_formats = ["HDF5", "NetCDF", "Zarr"]
+        plot(file_formats, 10, "[25, 25, 25]")
