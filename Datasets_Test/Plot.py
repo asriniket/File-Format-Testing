@@ -13,13 +13,16 @@ def plot(file_formats, num_datasets, dimensions):
         plt_labels = ["Dataset Read Time", "Dataset Write Time"]
         x = np.arange(len(plt_labels))
         offset = -width
-        plt.ylabel("Average Time (s)")
+        plt.ylabel("Average Time (ms)")
         plt.title(f"{num_datasets} Datasets {dimensions} Elements Dataset Read / Write Times")
         plt.xticks(x, plt_labels)
         for i in range(0, len(file_formats)):
-                # Error format: Each row represents one file format.
-                bar_read_write = plt.bar(x + offset, [read_time[i], write_time[i]], width, label=file_formats[i], edgecolor="black", yerr=[error[i][3], error[i][1]])
-                plt.bar_label(bar_read_write,padding=3)
+                read_time_round = round(read_time[i], 5)
+                write_time_round = round(write_time[i], 5)
+                read_error = error[i][3]
+                write_error = error[i][1]
+                bar_create_open = plt.bar(x + offset, [read_time_round, write_time_round], width, label=file_formats[i], edgecolor="black", yerr=[read_error, write_error])
+                plt.bar_label(bar_create_open,padding=3)
                 offset+=width
         plt.legend()
         plt.tight_layout()      
@@ -30,11 +33,15 @@ def plot(file_formats, num_datasets, dimensions):
         plt_labels = ["Dataset Create Time", "Dataset Open Time"]
         x = np.arange(len(plt_labels))
         offset = -width
-        plt.ylabel("Average Time (s)")
+        plt.ylabel("Average Time (ms)")
         plt.title(f"{num_datasets} Datasets {dimensions} Elements Dataset Create / Open Times")
         plt.xticks(x, plt_labels)
         for i in range(0, len(file_formats)):
-                bar_create_open = plt.bar(x + offset, [create_time[i], open_time[i]], width, label=file_formats[i], edgecolor="black", yerr=[error[i][0], error[i][2]])
+                create_time_round = round(create_time[i], 5)
+                open_time_round = round(open_time[i], 5)
+                create_error = error[i][0]
+                open_error = error[i][2]
+                bar_create_open = plt.bar(x + offset, [create_time_round, open_time_round], width, label=file_formats[i], edgecolor="black", yerr=[create_error, open_error])
                 plt.bar_label(bar_create_open, padding=3)
                 offset+=width
         plt.legend()
@@ -72,7 +79,3 @@ def process_csv(file_formats, num_datasets, dimensions):
                 df = pd.concat([df, average_values], ignore_index = True)
                 df.to_csv(f"Data/{file_format}_{num_datasets}_{dimensions}.csv", index=False)
         return total_dataset_create_time, total_dataset_write_time, total_dataset_open_time, total_dataset_read_time, error
-
-if __name__ == "__main__":
-        file_formats = ["HDF5", "NetCDF", "Zarr"]
-        plot(file_formats, 10, "[25, 25, 25]")
